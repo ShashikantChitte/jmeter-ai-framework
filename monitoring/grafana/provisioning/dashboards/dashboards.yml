@@ -1,0 +1,3 @@
+apiVersion: 1
+providers:
+  - { name: omp, folder: OMP Performance, type: file, disableDeletion: false, options: { path: /var/lib/grafana/dashboards } }

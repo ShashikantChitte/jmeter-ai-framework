@@ -1,0 +1,8 @@
+# JMeter Graphite sender names:  jmeter.<sampler>.<ok|ko|a>.<metric>  (percentiles: pct95.0)
+mappings:
+  - match: "jmeter.*.*.*"
+    name: "jmeter_${3}"
+    labels: { transaction: "$1", status: "$2" }
+  - match: "jmeter.*.*.*.*"
+    name: "jmeter_${3}_${4}"
+    labels: { transaction: "$1", status: "$2" }

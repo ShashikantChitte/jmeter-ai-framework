@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="FRG - JDBC (fragment file)" enabled="true">
+      <stringProp name="TestPlan.comments">JDBC samplers. The JDBC Connection Configuration lives in the MASTER plan (pool must exist at test start).</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+</collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - JDBC" enabled="true" />
+      <hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="PROTO_JDBC_OrderLookup" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="JDBC - select recent orders" enabled="true">
+            <stringProp name="dataSource">omp_pg</stringProp>
+            <stringProp name="query">SELECT id, status, total FROM orders WHERE customer = ? ORDER BY created_at DESC LIMIT 20</stringProp>
+            <stringProp name="queryArguments">${username}</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR</stringProp>
+            <stringProp name="queryTimeout">10</stringProp>
+            <stringProp name="queryType">Prepared Select Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows" />
+            <stringProp name="resultVariable" />
+            <stringProp name="variableNames">db_order_id,db_status,db_total</stringProp>
+          </JDBCSampler>
+          <hashTree>
+</hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="DB think time" enabled="true">
+            <stringProp name="ConstantTimer.delay">${__P(db_think_ms,200)}</stringProp>
+          </ConstantTimer>
+          <hashTree>
+</hashTree>
+        </hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="PROTO_JDBC_AuditInsert" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <JDBCSampler guiclass="TestBeanGUI" testclass="JDBCSampler" testname="JDBC - insert audit row" enabled="true">
+            <stringProp name="dataSource">omp_pg</stringProp>
+            <stringProp name="query">INSERT INTO audit_log(user_name, action) VALUES (?, ?)</stringProp>
+            <stringProp name="queryArguments">${username},PERF_TEST</stringProp>
+            <stringProp name="queryArgumentsTypes">VARCHAR,VARCHAR</stringProp>
+            <stringProp name="queryTimeout">10</stringProp>
+            <stringProp name="queryType">Prepared Update Statement</stringProp>
+            <stringProp name="resultSetHandler">Store as String</stringProp>
+            <stringProp name="resultSetMaxRows" />
+            <stringProp name="resultVariable" />
+            <stringProp name="variableNames" />
+          </JDBCSampler>
+          <hashTree>
+</hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

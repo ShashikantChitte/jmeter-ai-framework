@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.example.perf</groupId>
+  <artifactId>omp-jmeter-framework</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+  <name>OMP JMeter Performance Framework</name>
+
+  <properties>
+    <jmeter.version>5.6.3</jmeter.version>
+    <env>local</env>               <!-- mvn verify -Denv=qa -->
+    <profile>smoke</profile>       <!-- mvn verify -Dprofile=load -->
+    <testrun>maven-local</testrun>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+  </properties>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>com.lazerycode.jmeter</groupId>
+        <artifactId>jmeter-maven-plugin</artifactId>
+        <version>3.8.0</version>
+        <executions>
+          <execution><id>configuration</id><goals><goal>configure</goal></goals></execution>
+          <execution><id>jmeter-tests</id><goals><goal>jmeter</goal></goals></execution>
+          <execution><id>jmeter-check-results</id><goals><goal>results</goal></goals></execution>
+        </executions>
+        <configuration>
+          <jmeterVersion>${jmeter.version}</jmeterVersion>
+          <testFilesDirectory>${project.basedir}/tests/main</testFilesDirectory>
+          <testFilesIncluded><jMeterTestFile>omp_main.jmx</jMeterTestFile></testFilesIncluded>
+          <resultsFileFormat>csv</resultsFileFormat>
+          <testResultsTimestamp>false</testResultsTimestamp>
+          <generateReports>true</generateReports>
+          <!-- same layering as scripts/run_test.sh: tuning < env < profile -->
+          <customPropertiesFiles>
+            <file>${project.basedir}/config/jmeter/tuning.properties</file>
+            <file>${project.basedir}/config/env/${env}.properties</file>
+            <file>${project.basedir}/config/load_profiles/${profile}.properties</file>
+          </customPropertiesFiles>
+          <propertiesUser>
+            <base_dir>${project.basedir}</base_dir>
+            <results_dir>${project.build.directory}/jmeter/results</results_dir>
+            <testrun>${testrun}</testrun>
+          </propertiesUser>
+          <!-- plugins + protocol drivers resolved from Maven Central (no manual jar copying) -->
+          <downloadExtensionDependencies>true</downloadExtensionDependencies>
+          <jmeterExtensions>
+            <artifact>kg.apc:jmeter-plugins-casutg:2.10</artifact>
+          </jmeterExtensions>
+          <testPlanLibraries>
+            <artifact>org.postgresql:postgresql:42.7.3</artifact>
+            <artifact>org.apache.kafka:kafka-clients:3.7.0</artifact>
+            <artifact>org.apache.activemq:activemq-all:5.18.4</artifact>
+          </testPlanLibraries>
+          <jMeterProcessJVMSettings>
+            <xms>1024</xms><xmx>2048</xmx>
+            <arguments><argument>-XX:+UseG1GC</argument><argument>-XX:MaxGCPauseMillis=100</argument></arguments>
+          </jMeterProcessJVMSettings>
+          <!-- fail the build when errors exceed 1% (results goal) -->
+          <errorRateThresholdInPercent>1</errorRateThresholdInPercent>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>

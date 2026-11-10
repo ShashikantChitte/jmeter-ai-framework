@@ -1,0 +1,256 @@
+{
+  "mappings": [
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/health"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"status\":\"UP\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 5,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/oauth/token"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"access_token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZXJmIn0.c2lnbmF0dXJl\", \"token_type\": \"Bearer\", \"expires_in\": 300}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 40,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/api/auth/login"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZXJmIn0.c2lnbmF0dXJl\", \"expires_in\": 300}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 70,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/login"
+      },
+      "response": {
+        "status": 200,
+        "body": "<html><body><form method=\"post\" action=\"/login\"><input type=\"hidden\" name=\"_csrf\" value=\"{{randomValue length=24 type='ALPHANUMERIC'}}\"/></form></body></html>",
+        "headers": {
+          "Content-Type": "text/html"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 30,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/login"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJwZXJmIn0.c2lnbmF0dXJl\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 60,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 1,
+      "request": {
+        "method": "ANY",
+        "urlPathPattern": "/api/(?!auth/).*",
+        "headers": {
+          "Authorization": {
+            "absent": true
+          }
+        }
+      },
+      "response": {
+        "status": 401,
+        "body": "{\"error\":\"unauthorized\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 5,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/api/products"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"page\":1,\"items\":[{\"id\":101,\"name\":\"Item 101\",\"price\":19.99},{\"id\":142,\"name\":\"Item 142\",\"price\":29.5},{\"id\":177,\"name\":\"Item 177\",\"price\":9.75},{\"id\":205,\"name\":\"Item 205\",\"price\":99.0}]}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 60,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/api/products/[0-9]+"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"id\":{{request.pathSegments.[2]}},\"name\":\"Item {{request.pathSegments.[2]}}\",\"price\":19.99,\"stock\":42}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 50,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/api/search"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"totalHits\":125,\"results\":[{\"id\":110,\"name\":\"Result 110\"},{\"id\":131,\"name\":\"Result 131\"},{\"id\":158,\"name\":\"Result 158\"},{\"id\":190,\"name\":\"Result 190\"}]}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 90,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/api/cart/items"
+      },
+      "response": {
+        "status": 201,
+        "body": "{\"cartId\":\"c-{{randomValue length=10 type='ALPHANUMERIC'}}\",\"items\":1}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 80,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "POST",
+        "urlPath": "/api/checkout"
+      },
+      "response": {
+        "status": 201,
+        "body": "{\"orderId\":\"o-{{randomValue length=12 type='ALPHANUMERIC'}}\",\"status\":\"PENDING\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 180,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPathPattern": "/api/orders/[^/]+"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"orderId\":\"{{request.pathSegments.[2]}}\",\"status\":\"CONFIRMED\"}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 40,
+          "sigma": 0.35
+        }
+      }
+    },
+    {
+      "priority": 5,
+      "request": {
+        "method": "GET",
+        "urlPath": "/api/orders"
+      },
+      "response": {
+        "status": 200,
+        "body": "{\"orders\":[{\"orderId\":\"o-1\",\"status\":\"CONFIRMED\",\"total\":120.5},{\"orderId\":\"o-2\",\"status\":\"SHIPPED\",\"total\":59.9}]}",
+        "headers": {
+          "Content-Type": "application/json"
+        },
+        "delayDistribution": {
+          "type": "lognormal",
+          "median": 70,
+          "sigma": 0.35
+        }
+      }
+    }
+  ]
+}

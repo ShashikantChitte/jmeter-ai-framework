@@ -1,0 +1,102 @@
+name: omp-perf
+# Local lab: mock app + JMeter + InfluxDB + Grafana + Prometheus stack.
+#   docker compose up -d wiremock influxdb grafana prometheus node-exporter cadvisor graphite-exporter
+#   docker compose --profile protocols up -d          # + Postgres, Kafka, ActiveMQ, WebSocket echo
+#   docker compose --profile run run --rm jmeter      # run the test inside the container
+services:
+  wiremock:                       # the "application under test" (dummy)
+    image: wiremock/wiremock:3.5.4
+    command: ["--global-response-templating", "--async-response-enabled=true", "--container-threads=200", "--no-request-journal"]
+    volumes: ["./mock/mappings:/home/wiremock/mappings:ro"]
+    ports: ["8080:8080"]
+
+  influxdb:                       # JMeter Backend Listener target
+    image: influxdb:1.8
+    environment: { INFLUXDB_DB: jmeter, INFLUXDB_HTTP_LOG_ENABLED: "false" }
+    ports: ["8086:8086"]
+    volumes: ["influx-data:/var/lib/influxdb"]
+
+  grafana:
+    image: grafana/grafana:10.4.2
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"        # lab only
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+    ports: ["3001:3000"]
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [influxdb, prometheus]
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    ports: ["9090:9090"]
+
+  node-exporter:                  # host CPU / memory / disk / NETWORK
+    image: prom/node-exporter:v1.8.1
+    ports: ["9100:9100"]
+
+  cadvisor:                       # container CPU / memory / network
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    privileged: true
+    volumes: ["/:/rootfs:ro", "/var/run:/var/run:ro", "/sys:/sys:ro", "/var/lib/docker/:/var/lib/docker:ro"]
+    ports: ["8081:8080"]
+
+  graphite-exporter:              # Graphite Backend Listener -> Prometheus bridge
+    image: prom/graphite-exporter:v0.15.1
+    command: ["--graphite.mapping-config=/etc/graphite/mapping.yml"]
+    volumes: ["./monitoring/graphite/mapping.yml:/etc/graphite/mapping.yml:ro"]
+    ports: ["9108:9108", "9109:9109"]
+
+  jmeter:                         # containerised JMeter (standalone mode)
+    build: .
+    profiles: ["run"]
+    environment:
+      MODE: standalone
+      ENV: docker
+      PROFILE: smoke
+      TESTRUN: compose-run
+      RUN_AI_ANALYSIS: "true"
+      ANNOTATE_GRAFANA: "true"
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}      # optional - without it the offline analyst is used
+      AI_MODEL: ${AI_MODEL:-claude-sonnet-5-5}
+    volumes: ["./results:/opt/omp/results"]
+    ports: ["9404:9404"]
+    depends_on: [wiremock, influxdb]
+
+  # ---------- optional protocol targets ----------
+  postgres:
+    image: postgres:16
+    profiles: ["protocols"]
+    environment: { POSTGRES_DB: omp, POSTGRES_USER: omp, POSTGRES_PASSWORD: omp }
+    volumes: ["./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"]
+    ports: ["5432:5432"]
+  activemq:
+    image: apache/activemq-classic:5.18.4
+    profiles: ["protocols"]
+    ports: ["61616:61616", "8161:8161"]
+  echo:                           # WebSocket echo server at /.ws
+    image: jmalloc/echo-server
+    profiles: ["protocols"]
+    ports: ["8082:8080"]
+  kafka:
+    image: apache/kafka:3.7.0
+    profiles: ["protocols"]
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    ports: ["9092:9092"]
+
+volumes:
+  influx-data:

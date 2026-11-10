@@ -1,0 +1,21 @@
+{
+  "_comment": "Per-transaction SLAs derived from the NFRs. Reviewed like code. p95 in ms.",
+  "default": { "p95_ms": 2000, "error_pct": 1.0 },
+  "regression_tolerance_pct": 15,
+  "min_tps": 0,
+  "transactions": {
+    "AUTH_Login_JWT":            { "p95_ms": 1500, "error_pct": 0.5 },
+    "AUTH_OAuth2_Token":         { "p95_ms": 1000, "error_pct": 0.5 },
+    "TX01_Browse_ProductList":   { "p95_ms": 1500, "error_pct": 1.0 },
+    "TX01_Browse_ProductDetail": { "p95_ms": 1500, "error_pct": 1.0 },
+    "TX02_Search_Query":         { "p95_ms": 2000, "p99_ms": 4000, "error_pct": 1.0 },
+    "TX03_AddToCart":            { "p95_ms": 1500, "error_pct": 0.5 },
+    "TX04_Checkout_Submit":      { "p95_ms": 3000, "p99_ms": 5000, "error_pct": 0.1 },
+    "TX04_Checkout_ConfirmPoll": { "p95_ms": 3000, "error_pct": 0.5 },
+    "TX05_OrderHistory":         { "p95_ms": 2000, "error_pct": 1.0 },
+    "PROTO_JDBC_OrderLookup":    { "p95_ms": 500,  "error_pct": 0.5 },
+    "PROTO_Kafka_Produce":       { "p95_ms": 300,  "error_pct": 0.5 },
+    "PROTO_JMS_Publish":         { "p95_ms": 300,  "error_pct": 0.5 },
+    "PROTO_WebSocket_Echo":      { "p95_ms": 500,  "error_pct": 1.0 }
+  }
+}

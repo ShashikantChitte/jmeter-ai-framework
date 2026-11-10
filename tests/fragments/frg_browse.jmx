@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="FRG - Browse (fragment file)" enabled="true">
+      <stringProp name="TestPlan.comments">Browse flow: product list (correlation: random id extracted) then product detail.</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+</collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - Browse" enabled="true" />
+      <hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="TX01_Browse_ProductList" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /api/products" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments">
+</collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+            <stringProp name="HTTPSampler.path">/api/products?page=${__Random(1,5)}&amp;size=20</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert - HTTP 2xx" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="1145659620">^20[0-9]$</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message" />
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">1</intProp>
+            </ResponseAssertion>
+            <hashTree>
+</hashTree>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assert - items exist" enabled="true">
+              <stringProp name="JSON_PATH">$.items</stringProp>
+              <stringProp name="EXPECTED_VALUE" />
+              <boolProp name="JSONVALIDATION">false</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">true</boolProp>
+            </JSONPathAssertion>
+            <hashTree>
+</hashTree>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract - random product id" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">product_id</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.items[*].id</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree>
+</hashTree>
+            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Think Time (uniform random)" enabled="true">
+              <stringProp name="ConstantTimer.delay">${__P(think_min_ms,1000)}</stringProp>
+              <stringProp name="RandomTimer.range">${__P(think_range_ms,3000)}</stringProp>
+            </UniformRandomTimer>
+            <hashTree>
+</hashTree>
+          </hashTree>
+        </hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="TX01_Browse_ProductDetail" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /api/products/{id}" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments">
+</collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+            <stringProp name="HTTPSampler.path">/api/products/${product_id}</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert - HTTP 2xx" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="1145659620">^20[0-9]$</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message" />
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">1</intProp>
+            </ResponseAssertion>
+            <hashTree>
+</hashTree>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assert - id present" enabled="true">
+              <stringProp name="JSON_PATH">$.id</stringProp>
+              <stringProp name="EXPECTED_VALUE" />
+              <boolProp name="JSONVALIDATION">false</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">true</boolProp>
+            </JSONPathAssertion>
+            <hashTree>
+</hashTree>
+            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Think Time (uniform random)" enabled="true">
+              <stringProp name="ConstantTimer.delay">${__P(think_min_ms,1000)}</stringProp>
+              <stringProp name="RandomTimer.range">${__P(think_range_ms,3000)}</stringProp>
+            </UniformRandomTimer>
+            <hashTree>
+</hashTree>
+          </hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

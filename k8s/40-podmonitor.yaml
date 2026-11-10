@@ -1,0 +1,7 @@
+# Only if you run the Prometheus Operator (kube-prometheus-stack)
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata: { name: jmeter-workers, namespace: jmeter }
+spec:
+  selector: { matchLabels: { app: jmeter-worker } }
+  podMetricsEndpoints: [{ port: metrics, interval: 5s }]

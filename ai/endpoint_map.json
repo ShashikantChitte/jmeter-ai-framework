@@ -1,0 +1,13 @@
+{
+  "_comment": "Ordered rules: first match wins. Paths are normalised first (/api/orders/123 -> /api/orders/{id}). Edit for your application.",
+  "rules": [
+    {"scenario": "auth",     "pattern": "^/(oauth|login|logout|api/auth)"},
+    {"scenario": "checkout", "pattern": "^/api/checkout"},
+    {"scenario": "checkout", "pattern": "^/api/orders/\\{id\\}"},
+    {"scenario": "history",  "pattern": "^/api/orders/?$"},
+    {"scenario": "cart",     "pattern": "^/api/cart"},
+    {"scenario": "search",   "pattern": "^/api/search"},
+    {"scenario": "browse",   "pattern": "^/api/products"}
+  ],
+  "ignore": ["^/health", "^/static", "^/favicon", "\\.(js|css|png|jpe?g|gif|svg|ico|woff2?)$"]
+}

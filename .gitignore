@@ -1,0 +1,10 @@
+results/
+*.jtl
+*.log
+target/
+.idea/
+.DS_Store
+data/split/*
+!data/split/.gitkeep
+config/cluster.env
+__pycache__/

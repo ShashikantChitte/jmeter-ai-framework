@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="FRG - Kafka (fragment file)" enabled="true">
+      <stringProp name="TestPlan.comments">Kafka producer through a JSR223 sampler (shared producer in props, closed in tearDown).</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+</collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - Kafka" enabled="true" />
+      <hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="PROTO_Kafka_Produce" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="Kafka - produce event" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters" />
+            <stringProp name="filename" />
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// Kafka producer sample (needs kafka-clients jar in JMeter lib - included in the Docker image)
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
+def producer = props.get("omp.kafka.producer")
+if (producer == null) {
+    synchronized (props) {
+        producer = props.get("omp.kafka.producer")
+        if (producer == null) {
+            def cfg = new Properties()
+            cfg.put("bootstrap.servers", props.getProperty("kafka_bootstrap") ?: "localhost:9092")
+            cfg.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+            cfg.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
+            cfg.put("acks", props.getProperty("kafka_acks") ?: "1")
+            cfg.put("linger.ms", "5")
+            cfg.put("max.block.ms", "5000")
+            cfg.put("request.timeout.ms", "5000")
+            cfg.put("delivery.timeout.ms", "10000")
+            producer = new KafkaProducer&lt;String, String&gt;(cfg)
+            props.put("omp.kafka.producer", producer)
+        }
+    }
+}
+def topic = props.getProperty("kafka_topic") ?: "omp.orders"
+def key = vars.get("username") ?: "anon"
+def payload = '{"eventId":"' + UUID.randomUUID() + '","user":"' + key + '","ts":' + System.currentTimeMillis() + '}'
+try {
+    def md = producer.send(new ProducerRecord&lt;String, String&gt;(topic, key, payload)).get(10, java.util.concurrent.TimeUnit.SECONDS)
+    SampleResult.setResponseData(payload, "UTF-8")
+    SampleResult.setResponseMessage("partition=" + md.partition() + " offset=" + md.offset())
+    SampleResult.setSuccessful(true)
+} catch (Throwable e) {
+    SampleResult.setSuccessful(false)
+    SampleResult.setResponseMessage(e.toString())
+    log.error("Kafka send failed", e)
+}</stringProp>
+          </JSR223Sampler>
+          <hashTree>
+</hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Kafka pacing" enabled="true">
+            <stringProp name="ConstantTimer.delay">${__P(kafka_think_ms,100)}</stringProp>
+          </ConstantTimer>
+          <hashTree>
+</hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

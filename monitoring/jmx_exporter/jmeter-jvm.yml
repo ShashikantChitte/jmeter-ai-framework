@@ -1,0 +1,6 @@
+# JMX exporter config. Default JVM collectors (heap, GC, threads, classes) are always exported on :9404.
+lowercaseOutputName: true
+rules:
+  - pattern: 'java.lang<type=OperatingSystem><>(ProcessCpuLoad|SystemCpuLoad|OpenFileDescriptorCount|MaxFileDescriptorCount|SystemLoadAverage)'
+    name: jvm_os_$1
+    type: GAUGE

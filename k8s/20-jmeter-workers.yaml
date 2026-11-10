@@ -1,0 +1,50 @@
+# Headless service: DNS returns every worker pod IP -> the controller builds "-R ip1,ip2,..."
+apiVersion: v1
+kind: Service
+metadata: { name: jmeter-worker, namespace: jmeter, labels: { app: jmeter-worker } }
+spec:
+  clusterIP: None
+  publishNotReadyAddresses: false
+  selector: { app: jmeter-worker }
+  ports:
+    - { name: rmi, port: 1099 }
+    - { name: rmi-data, port: 50000 }
+    - { name: metrics, port: 9404 }
+---
+apiVersion: apps/v1
+kind: StatefulSet            # stable ordinals -> each worker gets its own CSV slice (users_<n>.csv)
+metadata: { name: jmeter-worker, namespace: jmeter }
+spec:
+  serviceName: jmeter-worker
+  replicas: 3                # scale: kubectl -n jmeter scale sts jmeter-worker --replicas=6
+  podManagementPolicy: Parallel
+  selector: { matchLabels: { app: jmeter-worker } }
+  template:
+    metadata:
+      labels: { app: jmeter-worker }
+      annotations: { prometheus.io/scrape: "true", prometheus.io/port: "9404" }
+    spec:
+      terminationGracePeriodSeconds: 30
+      # spread generators across nodes so one node's NIC/CPU is not the bottleneck
+      topologySpreadConstraints:
+        - { maxSkew: 1, topologyKey: kubernetes.io/hostname, whenUnsatisfiable: ScheduleAnyway, labelSelector: { matchLabels: { app: jmeter-worker } } }
+      containers:
+        - name: jmeter
+          image: registry.example.com/perf/omp-jmeter:1.0.0     # build + push the Dockerfile
+          imagePullPolicy: IfNotPresent
+          env:
+            - { name: MODE, value: worker }
+            - { name: POD_IP, valueFrom: { fieldRef: { fieldPath: status.podIP } } }
+            - { name: HEAP, value: "-Xms3g -Xmx3g -XX:MaxMetaspaceSize=256m" }   # keep < memory limit (leave room for off-heap)
+            - { name: OAUTH_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: omp-secrets, key: OAUTH_CLIENT_SECRET, optional: true } } }
+            - { name: JWT_SECRET, valueFrom: { secretKeyRef: { name: omp-secrets, key: JWT_SECRET, optional: true } } }
+          ports:
+            - { containerPort: 1099 }
+            - { containerPort: 50000 }
+            - { containerPort: 9404 }
+          readinessProbe: { tcpSocket: { port: 1099 }, initialDelaySeconds: 10, periodSeconds: 5 }
+          resources:
+            requests: { cpu: "2", memory: 4Gi }
+            limits:   { cpu: "2", memory: 4Gi }      # requests==limits => Guaranteed QoS, predictable generator performance
+          volumeMounts: [{ name: results, mountPath: /opt/omp/results }]
+      volumes: [{ name: results, emptyDir: {} }]

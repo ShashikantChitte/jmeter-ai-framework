@@ -1,0 +1,457 @@
+{
+ "uid": "omp-jmeter-results",
+ "title": "OMP - JMeter Results (InfluxDB)",
+ "tags": [
+  "jmeter",
+  "omp"
+ ],
+ "schemaVersion": 39,
+ "version": 1,
+ "refresh": "5s",
+ "time": {
+  "from": "now-30m",
+  "to": "now"
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "application",
+    "label": "Run (application)",
+    "type": "query",
+    "datasource": {
+     "type": "influxdb",
+     "uid": "influxdb-jmeter"
+    },
+    "query": "SHOW TAG VALUES FROM \"jmeter\" WITH KEY = \"application\"",
+    "refresh": 2,
+    "includeAll": false,
+    "multi": true,
+    "current": {}
+   },
+   {
+    "name": "transaction",
+    "type": "query",
+    "datasource": {
+     "type": "influxdb",
+     "uid": "influxdb-jmeter"
+    },
+    "query": "SHOW TAG VALUES FROM \"jmeter\" WITH KEY = \"transaction\" WHERE \"application\" =~ /^$application$/",
+    "refresh": 2,
+    "includeAll": true,
+    "multi": true,
+    "allValue": ".*",
+    "current": {}
+   }
+  ]
+ },
+ "panels": [
+  {
+   "id": 1,
+   "type": "timeseries",
+   "title": "Active users (virtual users)",
+   "description": "Applied load - must match the workload model",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"meanAT\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\"='internal' AND $timeFilter GROUP BY time($__interval), \"application\" fill(null)",
+     "alias": "$tag_application"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 2,
+   "type": "timeseries",
+   "title": "Throughput (requests/s)",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 8,
+    "y": 0,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"count\")/$__interval_ms*1000 FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='all' GROUP BY time($__interval), \"transaction\" fill(0)",
+     "alias": "$tag_transaction"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     },
+     "unit": "reqps"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 3,
+   "type": "timeseries",
+   "title": "Errors per interval",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 16,
+    "y": 0,
+    "w": 8,
+    "h": 7
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"count\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='ko' GROUP BY time($__interval), \"transaction\" fill(0)",
+     "alias": "$tag_transaction"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 4,
+   "type": "timeseries",
+   "title": "Response time p95 (ms)",
+   "description": "Compare against thresholds/thresholds.json",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 7,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"pct95.0\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='ok' GROUP BY time($__interval), \"transaction\" fill(null)",
+     "alias": "$tag_transaction"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     },
+     "unit": "ms"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 5,
+   "type": "timeseries",
+   "title": "Response time p99 (ms)",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 7,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"pct99.0\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='ok' GROUP BY time($__interval), \"transaction\" fill(null)",
+     "alias": "$tag_transaction"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     },
+     "unit": "ms"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 6,
+   "type": "timeseries",
+   "title": "Average / max response time (ms)",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 0,
+    "y": 15,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT mean(\"avg\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='ok' GROUP BY time($__interval), \"transaction\" fill(null)",
+     "alias": "avg $tag_transaction"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT max(\"max\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='ok' GROUP BY time($__interval), \"transaction\" fill(null)",
+     "alias": "max $tag_transaction"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     },
+     "unit": "ms"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  },
+  {
+   "id": 7,
+   "type": "timeseries",
+   "title": "Network: bytes received / sent per interval",
+   "description": "",
+   "datasource": {
+    "type": "influxdb",
+    "uid": "influxdb-jmeter"
+   },
+   "gridPos": {
+    "x": 12,
+    "y": 15,
+    "w": 12,
+    "h": 8
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"rb\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='all' GROUP BY time($__interval) fill(0)",
+     "alias": "received"
+    },
+    {
+     "refId": "B",
+     "datasource": {
+      "type": "influxdb",
+      "uid": "influxdb-jmeter"
+     },
+     "rawQuery": true,
+     "resultFormat": "time_series",
+     "query": "SELECT sum(\"sb\") FROM \"jmeter\" WHERE \"application\" =~ /^$application$/ AND \"transaction\" =~ /^$transaction$/ AND $timeFilter AND \"statut\"='all' GROUP BY time($__interval) fill(0)",
+     "alias": "sent"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 8
+     },
+     "unit": "bytes"
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max",
+      "last"
+     ]
+    },
+    "tooltip": {
+     "mode": "multi"
+    }
+   }
+  }
+ ],
+ "annotations": {
+  "list": [
+   {
+    "name": "Test events",
+    "datasource": {
+     "type": "influxdb",
+     "uid": "influxdb-jmeter"
+    },
+    "enable": true,
+    "iconColor": "#5794F2",
+    "query": "SELECT \"text\",\"title\" FROM \"events\" WHERE $timeFilter",
+    "titleColumn": "title",
+    "textColumn": "text",
+    "type": "tags"
+   }
+  ]
+ }
+}

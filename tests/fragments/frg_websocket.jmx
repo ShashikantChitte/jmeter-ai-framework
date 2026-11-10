@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="FRG - WebSocket (fragment file)" enabled="true">
+      <stringProp name="TestPlan.comments">WebSocket connect + send + receive using java.net.http (no plugin).</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+</collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - WebSocket" enabled="true" />
+      <hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="PROTO_WebSocket_Echo" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="WebSocket - echo round trip" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters" />
+            <stringProp name="filename" />
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// WebSocket round trip using the JDK 11+ java.net.http client (no plugin needed)
+import java.net.URI
+import java.net.http.HttpClient
+import java.net.http.WebSocket
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CompletionStage
+import java.util.concurrent.TimeUnit
+def url = props.getProperty("ws_url") ?: "ws://localhost:8081/.ws"
+def msg = '{"type":"ping","user":"' + (vars.get("username") ?: "anon") + '","ts":' + System.currentTimeMillis() + '}'
+def client = props.get("omp.ws.client")
+if (client == null) {
+    synchronized (props) {
+        client = props.get("omp.ws.client")
+        if (client == null) { client = HttpClient.newHttpClient(); props.put("omp.ws.client", client) }
+    }
+}
+def reply = new CompletableFuture&lt;String&gt;()
+def listener = new WebSocket.Listener() {
+    private final StringBuilder sb = new StringBuilder()
+    void onOpen(WebSocket ws) { ws.request(1) }
+    CompletionStage onText(WebSocket ws, CharSequence data, boolean lastPart) {
+        sb.append(data)
+        if (lastPart) { reply.complete(sb.toString()) }
+        ws.request(1)
+        return null
+    }
+    void onError(WebSocket ws, Throwable err) { reply.completeExceptionally(err) }
+}
+WebSocket socket = null
+try {
+    socket = client.newWebSocketBuilder().connectTimeout(java.time.Duration.ofSeconds(5)).buildAsync(URI.create(url), listener).get(5, TimeUnit.SECONDS)
+    socket.sendText(msg, true).get(5, TimeUnit.SECONDS)
+    def echoed = reply.get(5, TimeUnit.SECONDS)
+    SampleResult.setResponseData(echoed, "UTF-8")
+    SampleResult.setResponseMessage("echo received")
+    SampleResult.setSuccessful(echoed != null &amp;&amp; echoed.length() &gt; 0)
+} catch (Throwable e) {
+    SampleResult.setSuccessful(false)
+    SampleResult.setResponseMessage(e.toString())
+    log.error("WebSocket sample failed", e)
+} finally {
+    if (socket != null) { try { socket.sendClose(WebSocket.NORMAL_CLOSURE, "bye").get(2, TimeUnit.SECONDS) } catch (Throwable ignore) { } }
+}</stringProp>
+          </JSR223Sampler>
+          <hashTree>
+</hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="WS pacing" enabled="true">
+            <stringProp name="ConstantTimer.delay">${__P(ws_think_ms,500)}</stringProp>
+          </ConstantTimer>
+          <hashTree>
+</hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

@@ -1,0 +1,9 @@
+// Gradle alternative: thin wrapper around the same scripts (keeps one source of truth).
+//   gradle perfTest -Penv=qa -Pprofile=load
+tasks.register('perfTest', Exec) {
+    group = 'verification'
+    environment 'ENV', project.findProperty('env') ?: 'local'
+    environment 'PROFILE', project.findProperty('profile') ?: 'smoke'
+    environment 'TESTRUN', project.findProperty('testrun') ?: "gradle-${System.currentTimeMillis()}"
+    commandLine 'bash', 'scripts/run_test.sh'
+}

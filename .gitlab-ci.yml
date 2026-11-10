@@ -1,0 +1,75 @@
+# GitLab CI: build image once, run smoke on every merge request, load nightly (schedule), soak/stress manually.
+stages: [build, smoke, performance, report]
+
+variables:
+  IMAGE: $CI_REGISTRY_IMAGE/omp-jmeter:$CI_COMMIT_SHORT_SHA
+  TESTRUN: gitlab-$CI_PIPELINE_ID
+  ENV: qa
+  RUN_AI_ANALYSIS: "true"        # statistical/rule-based analysis; add masked CI variable ANTHROPIC_API_KEY to enable LLM refinement
+  ANNOTATE_GRAFANA: "true"
+  SAVE_HISTORY: "true"
+
+build-image:
+  stage: build
+  image: docker:24
+  services: [docker:24-dind]
+  script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker build -t "$IMAGE" .
+    - docker push "$IMAGE"
+
+.jmeter-job: &jmeter
+  image: { name: "$IMAGE", entrypoint: [""] }
+  tags: [perf-runner]                      # dedicated runners
+  script:
+    - mkdir -p results
+    - /opt/omp/scripts/preflight.sh
+    - /opt/omp/scripts/run_test.sh
+  after_script:
+    - cp -r /opt/omp/results ./results || true
+  artifacts:
+    when: always
+    expire_in: 14 days
+    paths: [results/]
+    reports: { junit: results/junit.xml }  # per-transaction pass/fail in the MR widget
+
+smoke:
+  <<: *jmeter
+  stage: smoke
+  variables: { PROFILE: smoke }
+  rules: [{ if: '$CI_PIPELINE_SOURCE == "merge_request_event"' }, { if: '$CI_COMMIT_BRANCH == "main"' }]
+
+load-nightly:
+  <<: *jmeter
+  stage: performance
+  variables: { PROFILE: load }
+  allow_failure: { exit_codes: 2 }         # exit 2 = regression warning only
+  rules: [{ if: '$CI_PIPELINE_SOURCE == "schedule"' }]
+
+stress-manual:
+  <<: *jmeter
+  stage: performance
+  variables: { PROFILE: stress }
+  rules: [{ when: manual }]
+
+soak-manual:
+  <<: *jmeter
+  stage: performance
+  timeout: 10h
+  variables: { PROFILE: soak }
+  rules: [{ when: manual }]
+
+distributed-k8s:
+  stage: performance
+  image: bitnami/kubectl:latest
+  variables: { PROFILE: load, WORKERS: "4", ENV: perf }
+  script: [./k8s/run_distributed.sh]
+  artifacts: { when: always, paths: [results/], reports: { junit: results/junit.xml } }
+  rules: [{ when: manual }]
+
+pages:                                      # publish the HTML dashboard of the latest nightly
+  stage: report
+  needs: [{ job: load-nightly, optional: true, artifacts: true }]
+  script: [mkdir -p public, "cp -r results/report/* public/ || true"]
+  artifacts: { paths: [public] }
+  rules: [{ if: '$CI_PIPELINE_SOURCE == "schedule"' }]

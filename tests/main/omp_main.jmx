@@ -1,0 +1,931 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="OMP Performance Framework - Master Plan">
+      <stringProp name="TestPlan.comments">Scalable JMeter framework: modular (Include/Module Controllers + Test Fragments), property-driven (__P), multi-protocol, OAuth2/JWT, Backend Listener, distributed-ready. See README.md.</stringProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments"/>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <Arguments guiclass="ArgumentsPanel" testclass="Arguments" testname="Global variables (all from properties)">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="env" elementType="Argument">
+            <stringProp name="Argument.name">env</stringProp>
+            <stringProp name="Argument.value">${__P(env,local)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="AUTH_MODE" elementType="Argument">
+            <stringProp name="Argument.name">AUTH_MODE</stringProp>
+            <stringProp name="Argument.value">${__P(auth_mode,jwt)}</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="authHeader" elementType="Argument">
+            <stringProp name="Argument.name">authHeader</stringProp>
+            <stringProp name="Argument.value">Bearer anonymous</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </Arguments>
+      <hashTree/>
+      <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults">
+        <stringProp name="HTTPSampler.connect_timeout">${__P(connect_timeout,5000)}</stringProp>
+        <stringProp name="HTTPSampler.response_timeout">${__P(response_timeout,30000)}</stringProp>
+        <stringProp name="HTTPSampler.domain">${__P(host,localhost)}</stringProp>
+        <stringProp name="HTTPSampler.port">${__P(port,8080)}</stringProp>
+        <stringProp name="HTTPSampler.protocol">${__P(protocol,http)}</stringProp>
+        <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+        <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+          <collectionProp name="Arguments.arguments"/>
+        </elementProp>
+        <stringProp name="HTTPSampler.implementation"></stringProp>
+      </ConfigTestElement>
+      <hashTree/>
+      <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager (global)">
+        <collectionProp name="HeaderManager.headers">
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Content-Type</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Accept</stringProp>
+            <stringProp name="Header.value">application/json</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">Authorization</stringProp>
+            <stringProp name="Header.value">${authHeader}</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">X-Request-Id</stringProp>
+            <stringProp name="Header.value">${__UUID}</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">X-Test-Run</stringProp>
+            <stringProp name="Header.value">${__P(testrun,local)}</stringProp>
+          </elementProp>
+          <elementProp name="" elementType="Header">
+            <stringProp name="Header.name">User-Agent</stringProp>
+            <stringProp name="Header.value">OMP-JMeter/${__P(framework_version,1.0)}</stringProp>
+          </elementProp>
+        </collectionProp>
+      </HeaderManager>
+      <hashTree/>
+      <CookieManager guiclass="CookiePanel" testclass="CookieManager" testname="HTTP Cookie Manager">
+        <collectionProp name="CookieManager.cookies"/>
+        <boolProp name="CookieManager.clearEachIteration">true</boolProp>
+        <boolProp name="CookieManager.controlledByThreadGroup">false</boolProp>
+      </CookieManager>
+      <hashTree/>
+      <CacheManager guiclass="CacheManagerGui" testclass="CacheManager" testname="HTTP Cache Manager">
+        <boolProp name="clearEachIteration">true</boolProp>
+        <boolProp name="useExpires">true</boolProp>
+        <boolProp name="CacheManager.controlledByThread">false</boolProp>
+      </CacheManager>
+      <hashTree/>
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV - users">
+        <stringProp name="delimiter">,</stringProp>
+        <stringProp name="fileEncoding">UTF-8</stringProp>
+        <stringProp name="filename">${__P(users_file,${__P(base_dir,.)}/data/users.csv)}</stringProp>
+        <boolProp name="ignoreFirstLine">true</boolProp>
+        <boolProp name="quotedData">false</boolProp>
+        <boolProp name="recycle">true</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+        <boolProp name="stopThread">false</boolProp>
+        <stringProp name="variableNames">username,password</stringProp>
+      </CSVDataSet>
+      <hashTree/>
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV - products">
+        <stringProp name="delimiter">,</stringProp>
+        <stringProp name="fileEncoding">UTF-8</stringProp>
+        <stringProp name="filename">${__P(base_dir,.)}/data/products.csv</stringProp>
+        <boolProp name="ignoreFirstLine">true</boolProp>
+        <boolProp name="quotedData">false</boolProp>
+        <boolProp name="recycle">true</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+        <boolProp name="stopThread">false</boolProp>
+        <stringProp name="variableNames">csv_product_id,csv_sku,csv_price</stringProp>
+      </CSVDataSet>
+      <hashTree/>
+      <CSVDataSet guiclass="TestBeanGUI" testclass="CSVDataSet" testname="CSV - search terms">
+        <stringProp name="delimiter">,</stringProp>
+        <stringProp name="fileEncoding">UTF-8</stringProp>
+        <stringProp name="filename">${__P(base_dir,.)}/data/search_terms.csv</stringProp>
+        <boolProp name="ignoreFirstLine">true</boolProp>
+        <boolProp name="quotedData">false</boolProp>
+        <boolProp name="recycle">true</boolProp>
+        <stringProp name="shareMode">shareMode.all</stringProp>
+        <boolProp name="stopThread">false</boolProp>
+        <stringProp name="variableNames">term</stringProp>
+      </CSVDataSet>
+      <hashTree/>
+      <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Auth header resolver (oauth2 shared token)">
+        <stringProp name="scriptLanguage">groovy</stringProp>
+        <stringProp name="parameters"></stringProp>
+        <stringProp name="filename"></stringProp>
+        <stringProp name="cacheKey">true</stringProp>
+        <stringProp name="script">// Plan-level pre-processor: for oauth2 mode every sampler picks up the shared token
+if (vars.get(&quot;AUTH_MODE&quot;) == &quot;oauth2&quot;) {
+    def t = props.getProperty(&quot;oauth.token&quot;)
+    if (t != null) { vars.put(&quot;authHeader&quot;, &quot;Bearer &quot; + t) }
+}</stringProp>
+      </JSR223PreProcessor>
+      <hashTree/>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - Authenticate"/>
+      <hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - JWT login needed (mode=jwt)">
+          <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;jwt&quot; &amp;&amp; (vars.get(&quot;jwt_exp&quot;) == null || vars.get(&quot;jwt_user&quot;) != vars.get(&quot;username&quot;) || System.currentTimeMillis() &gt; Long.parseLong(vars.get(&quot;jwt_exp&quot;))))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="AUTH_Login_JWT">
+            <boolProp name="TransactionController.parent">true</boolProp>
+            <boolProp name="TransactionController.includeTimers">false</boolProp>
+          </TransactionController>
+          <hashTree>
+            <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="POST /api/auth/login">
+              <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+              <stringProp name="HTTPSampler.path">/api/auth/login</stringProp>
+              <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+              <stringProp name="HTTPSampler.method">POST</stringProp>
+              <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+              <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+              <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+                <collectionProp name="Arguments.arguments">
+                  <elementProp name="" elementType="HTTPArgument">
+                    <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                    <stringProp name="Argument.value">{&quot;username&quot;:&quot;${username}&quot;,&quot;password&quot;:&quot;${password}&quot;}</stringProp>
+                    <stringProp name="Argument.metadata">=</stringProp>
+                  </elementProp>
+                </collectionProp>
+              </elementProp>
+            </HTTPSamplerProxy>
+            <hashTree>
+              <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert - HTTP 2xx" enabled="true">
+                <collectionProp name="Asserion.test_strings">
+                  <stringProp name="1145659620">^20[0-9]$</stringProp>
+                </collectionProp>
+                <stringProp name="Assertion.custom_message"></stringProp>
+                <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+                <boolProp name="Assertion.assume_success">false</boolProp>
+                <intProp name="Assertion.test_type">1</intProp>
+              </ResponseAssertion>
+              <hashTree/>
+              <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assert - token present" enabled="true">
+                <stringProp name="JSON_PATH">$.token</stringProp>
+                <stringProp name="EXPECTED_VALUE"></stringProp>
+                <boolProp name="JSONVALIDATION">false</boolProp>
+                <boolProp name="EXPECT_NULL">false</boolProp>
+                <boolProp name="INVERT">false</boolProp>
+                <boolProp name="ISREGEX">true</boolProp>
+              </JSONPathAssertion>
+              <hashTree/>
+              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract - jwt" enabled="true">
+                <stringProp name="JSONPostProcessor.referenceNames">jwt</stringProp>
+                <stringProp name="JSONPostProcessor.jsonPathExprs">$.token</stringProp>
+                <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+                <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+              </JSONPostProcessor>
+              <hashTree/>
+              <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract - ttl" enabled="true">
+                <stringProp name="JSONPostProcessor.referenceNames">jwt_ttl</stringProp>
+                <stringProp name="JSONPostProcessor.jsonPathExprs">$.expires_in</stringProp>
+                <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+                <stringProp name="JSONPostProcessor.defaultValues">300</stringProp>
+              </JSONPostProcessor>
+              <hashTree/>
+              <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Store JWT expiry + Authorization header" enabled="true">
+                <stringProp name="scriptLanguage">groovy</stringProp>
+                <stringProp name="parameters"></stringProp>
+                <stringProp name="filename"></stringProp>
+                <stringProp name="cacheKey">true</stringProp>
+                <stringProp name="script">// Stores JWT expiry so the framework re-authenticates only when needed
+def tok = vars.get(&quot;jwt&quot;)
+if (tok == null || tok == &quot;NOT_FOUND&quot;) {
+    prev.setSuccessful(false)
+    prev.setResponseMessage(&quot;JWT not found in login response&quot;)
+    return
+}
+def ttlStr = vars.get(&quot;jwt_ttl&quot;)
+long ttl = (ttlStr != null &amp;&amp; ttlStr ==~ /\d+/) ? Long.parseLong(ttlStr) : 300L
+vars.put(&quot;jwt_exp&quot;, String.valueOf(System.currentTimeMillis() + (ttl - 20L) * 1000L))
+vars.put(&quot;jwt_user&quot;, vars.get(&quot;username&quot;))
+vars.put(&quot;authHeader&quot;, &quot;Bearer &quot; + tok)</stringProp>
+              </JSR223PostProcessor>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - OAuth2 token expired (mode=oauth2)">
+          <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;oauth2&quot; &amp;&amp; System.currentTimeMillis() &gt; Long.parseLong(props.getProperty(&quot;oauth.expiry&quot;) ?: &quot;0&quot;))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <CriticalSectionController guiclass="CriticalSectionControllerGui" testclass="CriticalSectionController" testname="Critical Section - single refresher">
+            <stringProp name="CriticalSectionController.lockName">oauth_refresh</stringProp>
+          </CriticalSectionController>
+          <hashTree>
+            <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - still expired after lock">
+              <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;oauth2&quot; &amp;&amp; System.currentTimeMillis() &gt; Long.parseLong(props.getProperty(&quot;oauth.expiry&quot;) ?: &quot;0&quot;))}</stringProp>
+              <boolProp name="IfController.evaluateAll">false</boolProp>
+              <boolProp name="IfController.useExpression">true</boolProp>
+            </IfController>
+            <hashTree>
+              <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - OAuth2 token fragment">
+                <stringProp name="IncludeController.includepath">../fragments/frg_oauth2_token.jmx</stringProp>
+              </IncludeController>
+              <hashTree/>
+            </hashTree>
+          </hashTree>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - local JWT needed (mode=jwt_local)">
+          <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;jwt_local&quot; &amp;&amp; (vars.get(&quot;jwt_exp&quot;) == null || vars.get(&quot;jwt_user&quot;) != vars.get(&quot;username&quot;) || System.currentTimeMillis() &gt; Long.parseLong(vars.get(&quot;jwt_exp&quot;))))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="AUTH_JWT_Local_Build">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// Builds an HS256 JWT locally (no auth server round trip) - for APIs that only validate signatures
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
+import java.util.Base64
+def b64 = { byte[] b -&gt; Base64.getUrlEncoder().withoutPadding().encodeToString(b) }
+def secret = System.getenv(&quot;JWT_SECRET&quot;) ?: props.getProperty(&quot;jwt_secret&quot;) ?: &quot;dev-secret-change-me&quot;
+long now = (long) (System.currentTimeMillis() / 1000)
+def user = vars.get(&quot;username&quot;) ?: &quot;user&quot;
+def header = &apos;{&quot;alg&quot;:&quot;HS256&quot;,&quot;typ&quot;:&quot;JWT&quot;}&apos;
+def payload = &apos;{&quot;sub&quot;:&quot;&apos; + user + &apos;&quot;,&quot;iss&quot;:&quot;omp-perf&quot;,&quot;iat&quot;:&apos; + now + &apos;,&quot;exp&quot;:&apos; + (now + 300) + &apos;}&apos;
+def unsigned = b64(header.getBytes(&quot;UTF-8&quot;)) + &quot;.&quot; + b64(payload.getBytes(&quot;UTF-8&quot;))
+def mac = Mac.getInstance(&quot;HmacSHA256&quot;)
+mac.init(new SecretKeySpec(secret.getBytes(&quot;UTF-8&quot;), &quot;HmacSHA256&quot;))
+def token = unsigned + &quot;.&quot; + b64(mac.doFinal(unsigned.getBytes(&quot;UTF-8&quot;)))
+vars.put(&quot;jwt&quot;, token)
+vars.put(&quot;jwt_user&quot;, user)
+vars.put(&quot;authHeader&quot;, &quot;Bearer &quot; + token)
+vars.put(&quot;jwt_exp&quot;, String.valueOf(System.currentTimeMillis() + 270000L))
+SampleResult.setResponseData(token, &quot;UTF-8&quot;)
+SampleResult.setSuccessful(true)</stringProp>
+          </JSR223Sampler>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - form login needed (mode=form)">
+          <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;form&quot; &amp;&amp; (vars.get(&quot;jwt_exp&quot;) == null || vars.get(&quot;jwt_user&quot;) != vars.get(&quot;username&quot;) || System.currentTimeMillis() &gt; Long.parseLong(vars.get(&quot;jwt_exp&quot;))))}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Form login (CSRF) fragment">
+            <stringProp name="IncludeController.includepath">../fragments/frg_form_login_csrf.jmx</stringProp>
+          </IncludeController>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener - InfluxDB (Grafana)">
+        <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="influxdbMetricsSender" elementType="Argument">
+              <stringProp name="Argument.name">influxdbMetricsSender</stringProp>
+              <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.influxdb.HttpMetricsSender</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="influxdbUrl" elementType="Argument">
+              <stringProp name="Argument.name">influxdbUrl</stringProp>
+              <stringProp name="Argument.value">${__P(influx_url,http://localhost:8086/write?db=jmeter)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="application" elementType="Argument">
+              <stringProp name="Argument.name">application</stringProp>
+              <stringProp name="Argument.value">${__P(app,omp)}_${__P(testrun,local)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="measurement" elementType="Argument">
+              <stringProp name="Argument.name">measurement</stringProp>
+              <stringProp name="Argument.value">jmeter</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="summaryOnly" elementType="Argument">
+              <stringProp name="Argument.name">summaryOnly</stringProp>
+              <stringProp name="Argument.value">false</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="samplersRegex" elementType="Argument">
+              <stringProp name="Argument.name">samplersRegex</stringProp>
+              <stringProp name="Argument.value">^(TX|AUTH|PROTO).*</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="percentiles" elementType="Argument">
+              <stringProp name="Argument.name">percentiles</stringProp>
+              <stringProp name="Argument.value">90;95;99</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="testTitle" elementType="Argument">
+              <stringProp name="Argument.name">testTitle</stringProp>
+              <stringProp name="Argument.value">${__P(testrun,local)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="eventTags" elementType="Argument">
+              <stringProp name="Argument.name">eventTags</stringProp>
+              <stringProp name="Argument.value"></stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="influxdbToken" elementType="Argument">
+              <stringProp name="Argument.name">influxdbToken</stringProp>
+              <stringProp name="Argument.value">${__P(influx_token,)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="TestPlan.comments">Live metrics to InfluxDB. Disable with jmx_toggle.py if you use Prometheus only.</stringProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.influxdb.InfluxdbBackendListenerClient</stringProp>
+        <stringProp name="QUEUE_SIZE">${__P(backend_queue_size,5000)}</stringProp>
+      </BackendListener>
+      <hashTree/>
+      <BackendListener guiclass="BackendListenerGui" testclass="BackendListener" testname="Backend Listener - Graphite (-&gt; Prometheus via graphite_exporter)" enabled="false">
+        <elementProp name="arguments" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments">
+          <collectionProp name="Arguments.arguments">
+            <elementProp name="graphiteMetricsSender" elementType="Argument">
+              <stringProp name="Argument.name">graphiteMetricsSender</stringProp>
+              <stringProp name="Argument.value">org.apache.jmeter.visualizers.backend.graphite.TextGraphiteMetricsSender</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="graphiteHost" elementType="Argument">
+              <stringProp name="Argument.name">graphiteHost</stringProp>
+              <stringProp name="Argument.value">${__P(graphite_host,localhost)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="graphitePort" elementType="Argument">
+              <stringProp name="Argument.name">graphitePort</stringProp>
+              <stringProp name="Argument.value">${__P(graphite_port,9109)}</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="rootMetricsPrefix" elementType="Argument">
+              <stringProp name="Argument.name">rootMetricsPrefix</stringProp>
+              <stringProp name="Argument.value">jmeter.</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="summaryOnly" elementType="Argument">
+              <stringProp name="Argument.name">summaryOnly</stringProp>
+              <stringProp name="Argument.value">false</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="samplersList" elementType="Argument">
+              <stringProp name="Argument.name">samplersList</stringProp>
+              <stringProp name="Argument.value">^(TX|AUTH|PROTO).*</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="useRegexpForSamplersList" elementType="Argument">
+              <stringProp name="Argument.name">useRegexpForSamplersList</stringProp>
+              <stringProp name="Argument.value">true</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+            <elementProp name="percentiles" elementType="Argument">
+              <stringProp name="Argument.name">percentiles</stringProp>
+              <stringProp name="Argument.value">90;95;99</stringProp>
+              <stringProp name="Argument.metadata">=</stringProp>
+            </elementProp>
+          </collectionProp>
+        </elementProp>
+        <stringProp name="TestPlan.comments">Disabled by default. Enable with: scripts/jmx_toggle.py ... on</stringProp>
+        <stringProp name="classname">org.apache.jmeter.visualizers.backend.graphite.GraphiteBackendListenerClient</stringProp>
+        <stringProp name="QUEUE_SIZE">${__P(backend_queue_size,5000)}</stringProp>
+      </BackendListener>
+      <hashTree/>
+      <ResultCollector guiclass="SimpleDataWriter" testclass="ResultCollector" testname="Error Writer (failed samples + response data)" enabled="true">
+        <boolProp name="ResultCollector.error_logging">true</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>false</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>true</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>true</responseHeaders>
+            <requestHeaders>true</requestHeaders>
+            <responseDataOnError>true</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename">${__P(results_dir,results)}/errors.jtl</stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree (GUI debug only)" enabled="false">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>false</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>false</subresults>
+            <responseData>false</responseData>
+            <samplerData>true</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>true</responseHeaders>
+            <requestHeaders>true</requestHeaders>
+            <responseDataOnError>true</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="TestPlan.comments">Use ONLY with 1 user in the GUI. Never in load runs.</stringProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+      <SetupThreadGroup guiclass="SetupThreadGroupGui" testclass="SetupThreadGroup" testname="setUp - health check + OAuth2 token" enabled="true">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <longProp name="ThreadGroup.duration">1</longProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </SetupThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="SETUP_Health_Check">
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/health</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert - HTTP 2xx">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="1145659620">^20[0-9]$</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">1</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Fail fast if unhealthy">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">// Fail fast: do not hammer an unhealthy environment
+if (!prev.isSuccessful() &amp;&amp; (props.getProperty(&quot;fail_fast&quot;) ?: &quot;true&quot;) == &quot;true&quot;) {
+    log.error(&quot;Health check failed - stopping test. Response: &quot; + prev.getResponseCode())
+    ctx.getEngine().askThreadsToStop()
+}</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If - mode=oauth2 -&gt; fetch shared token">
+          <stringProp name="IfController.condition">${__groovy(vars.get(&quot;AUTH_MODE&quot;) == &quot;oauth2&quot;)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - OAuth2 token fragment">
+            <stringProp name="IncludeController.includepath">../fragments/frg_oauth2_token.jmx</stringProp>
+          </IncludeController>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-01 Browse">
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(users,50)} * ${__P(mix_browse,40)} / 100.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Browse flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_browse.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-02 Search">
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(users,50)} * ${__P(mix_search,30)} / 100.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Search flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_search.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-03 Cart">
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(users,50)} * ${__P(mix_cart,15)} / 100.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate" enabled="true">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Search flow" enabled="true">
+          <stringProp name="IncludeController.includepath">../fragments/frg_search.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Cart flow" enabled="true">
+          <stringProp name="IncludeController.includepath">../fragments/frg_cart.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-04 Checkout (rate controlled)">
+        <stringProp name="TestPlan.comments">Rate-controlled with a throughput timer: shows how to hold a target TPS independent of users.</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(users,50)} * ${__P(mix_checkout,10)} / 100.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Search flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_search.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Cart flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_cart.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Checkout flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_checkout.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+        <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer (checkout_tps / workers)">
+          <intProp name="calcMode">4</intProp>
+          <stringProp name="throughput">${__groovy(${__P(checkout_tps,5)} * 60.0 / ${__P(workers,1)})}</stringProp>
+        </ConstantThroughputTimer>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-05 Order History">
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(users,50)} * ${__P(mix_history,5)} / 100.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Order history flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_order_history.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-06 JDBC (jdbc_users)">
+        <stringProp name="TestPlan.comments">Default 0 users. Enable: -Jjdbc_users=5 (profile &apos;protocols&apos;).</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(jdbc_users,0)} * 1.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <JDBCDataSource guiclass="TestBeanGUI" testclass="JDBCDataSource" testname="JDBC Connection Configuration (omp_pg)">
+          <stringProp name="dataSource">omp_pg</stringProp>
+          <stringProp name="poolMax">${__P(jdbc_pool_max,10)}</stringProp>
+          <stringProp name="timeout">10000</stringProp>
+          <stringProp name="trimInterval">60000</stringProp>
+          <boolProp name="autocommit">true</boolProp>
+          <stringProp name="transactionIsolation">DEFAULT</stringProp>
+          <boolProp name="keepAlive">true</boolProp>
+          <stringProp name="connectionAge">5000</stringProp>
+          <stringProp name="checkQuery">select 1</stringProp>
+          <stringProp name="initQuery"></stringProp>
+          <stringProp name="driver">${__P(jdbc_driver,org.postgresql.Driver)}</stringProp>
+          <stringProp name="dbUrl">${__P(jdbc_url,jdbc:postgresql://localhost:5432/omp)}</stringProp>
+          <stringProp name="username">${__P(jdbc_user,omp)}</stringProp>
+          <stringProp name="password">${__P(jdbc_password,omp)}</stringProp>
+          <stringProp name="connectionProperties"></stringProp>
+          <boolProp name="preinit">false</boolProp>
+        </JDBCDataSource>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - JDBC flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_jdbc.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-07 JMS (jms_users)">
+        <stringProp name="TestPlan.comments">Default 0 users. Enable: -Jjms_users=5</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(jms_users,0)} * 1.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - JMS flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_jms.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-08 Kafka (kafka_users)" enabled="true">
+        <stringProp name="TestPlan.comments">Default 0 users. Enable: -Jkafka_users=5</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(kafka_users,0)} * 1.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Kafka flow" enabled="true">
+          <stringProp name="IncludeController.includepath">../fragments/frg_kafka.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-09 WebSocket (ws_users)">
+        <stringProp name="TestPlan.comments">Default 0 users. Enable: -Jws_users=5</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__groovy(Math.round(${__P(ws_users,0)} * 1.0 / ${__P(workers,1)}))}</stringProp>
+        <stringProp name="ThreadGroup.ramp_time">${__P(rampup,60)}</stringProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - WebSocket flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_websocket.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="TG-10 Load generator health probe">
+        <stringProp name="TestPlan.comments">Writes results/lg_health.csv (CPU, heap, GC, threads, FDs, network). Keep generator CPU &lt; 70-80%.</stringProp>
+        <stringProp name="ThreadGroup.num_threads">${__P(lg_health,1)}</stringProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <stringProp name="ThreadGroup.duration">${__P(duration,300)}</stringProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="LG_Health_Probe">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// Load-generator self-monitoring: CPU, heap, GC, threads, file descriptors, network
+import java.lang.management.ManagementFactory
+try { SampleResult.setIgnore() } catch (Throwable t) { }
+def os = ManagementFactory.getOperatingSystemMXBean()
+def mem = ManagementFactory.getMemoryMXBean()
+def heap = mem.getHeapMemoryUsage()
+def nonHeap = mem.getNonHeapMemoryUsage()
+long gcCount = 0L
+long gcTime = 0L
+ManagementFactory.getGarbageCollectorMXBeans().each { b -&gt;
+    gcCount += Math.max(b.getCollectionCount(), 0L)
+    gcTime += Math.max(b.getCollectionTime(), 0L)
+}
+double procCpu = -1d
+double sysCpu = -1d
+long fds = -1L
+if (os instanceof com.sun.management.OperatingSystemMXBean) { procCpu = os.getProcessCpuLoad(); sysCpu = os.getCpuLoad() }
+if (os instanceof com.sun.management.UnixOperatingSystemMXBean) { fds = os.getOpenFileDescriptorCount() }
+long rx = 0L
+long tx = 0L
+def netFile = new File(&quot;/proc/net/dev&quot;)
+if (netFile.exists()) {
+    netFile.eachLine { line -&gt;
+        if (line.contains(&quot;:&quot;) &amp;&amp; !line.trim().startsWith(&quot;lo:&quot;)) {
+            def p = line.split(&quot;:&quot;)[1].trim().split(&quot;\\s+&quot;)
+            rx += p[0].toLong()
+            tx += p[8].toLong()
+        }
+    }
+}
+long now = System.currentTimeMillis()
+def last = props.get(&quot;lg.prev&quot;)
+double rxMBs = 0d
+double txMBs = 0d
+if (last != null) {
+    double dt = (now - last[0]) / 1000.0d
+    if (dt &gt; 0) { rxMBs = (rx - last[1]) / dt / 1048576.0d; txMBs = (tx - last[2]) / dt / 1048576.0d }
+}
+props.put(&quot;lg.prev&quot;, [now, rx, tx])
+def dir = new File(props.getProperty(&quot;results_dir&quot;) ?: &quot;results&quot;)
+dir.mkdirs()
+def f = new File(dir, &quot;lg_health.csv&quot;)
+if (!f.exists()) {
+    f &lt;&lt; &quot;timestamp,host,proc_cpu,sys_cpu,heap_used_mb,heap_max_mb,nonheap_used_mb,gc_count,gc_time_ms,open_fds,threads,rx_mb_s,tx_mb_s\n&quot;
+}
+def host = InetAddress.getLocalHost().getHostName()
+def row = [now, host, String.format(&quot;%.3f&quot;, procCpu), String.format(&quot;%.3f&quot;, sysCpu),
+           (long) (heap.getUsed() / 1048576), (long) (heap.getMax() / 1048576), (long) (nonHeap.getUsed() / 1048576),
+           gcCount, gcTime, fds, ManagementFactory.getThreadMXBean().getThreadCount(),
+           String.format(&quot;%.3f&quot;, rxMBs), String.format(&quot;%.3f&quot;, txMBs)]
+f &lt;&lt; row.join(&quot;,&quot;) + &quot;\n&quot;
+double warn = Double.parseDouble(props.getProperty(&quot;lg_cpu_warn&quot;) ?: &quot;0.80&quot;)
+if (sysCpu &gt; warn) {
+    log.warn(&quot;LOAD GENERATOR CPU HIGH: &quot; + String.format(&quot;%.0f&quot;, sysCpu * 100) + &quot;% on &quot; + host + &quot; - results may be distorted. Add generators.&quot;)
+}
+SampleResult.setResponseData(row.join(&quot;,&quot;), &quot;UTF-8&quot;)
+SampleResult.setSuccessful(true)</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+        <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Probe interval">
+          <stringProp name="ConstantTimer.delay">${__P(lg_health_interval_ms,5000)}</stringProp>
+        </ConstantTimer>
+        <hashTree/>
+      </hashTree>
+      <com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup guiclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroupGui" testclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup" testname="TG-11 Stepped load (bzm Concurrency TG, optional)" enabled="false">
+        <elementProp name="ThreadGroup.main_controller" elementType="com.blazemeter.jmeter.control.VirtualUserController"/>
+        <stringProp name="TestPlan.comments">Optional stepped load (stress/capacity). Needs plugin jpgc-casutg (installed in the Docker image). Enable in the GUI.</stringProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <stringProp name="TargetLevel">${__P(users,50)}</stringProp>
+        <stringProp name="RampUp">${__P(rampup,60)}</stringProp>
+        <stringProp name="Steps">${__P(steps,5)}</stringProp>
+        <stringProp name="Hold">${__P(hold,300)}</stringProp>
+        <stringProp name="LogFrequency">5</stringProp>
+        <stringProp name="Unit">S</stringProp>
+        <stringProp name="Iterations"></stringProp>
+        <stringProp name="LogFilename"></stringProp>
+        <boolProp name="same_user_on_next_iteration">true</boolProp>
+      </com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup>
+      <hashTree>
+        <ModuleController guiclass="ModuleControllerGui" testclass="ModuleController" testname="Module - Authenticate">
+          <collectionProp name="ModuleController.node_path">
+            <stringProp name="764597751">Test Plan</stringProp>
+            <stringProp name="-1724971788">OMP Performance Framework - Master Plan</stringProp>
+            <stringProp name="1441627597">FRG - Authenticate</stringProp>
+          </collectionProp>
+        </ModuleController>
+        <hashTree/>
+        <IncludeController guiclass="IncludeControllerGui" testclass="IncludeController" testname="Include - Search flow">
+          <stringProp name="IncludeController.includepath">../fragments/frg_search.jmx</stringProp>
+        </IncludeController>
+        <hashTree/>
+      </hashTree>
+      <PostThreadGroup guiclass="PostThreadGroupGui" testclass="PostThreadGroup" testname="tearDown - close clients + run info">
+        <intProp name="ThreadGroup.num_threads">1</intProp>
+        <intProp name="ThreadGroup.ramp_time">1</intProp>
+        <longProp name="ThreadGroup.duration">1</longProp>
+        <longProp name="ThreadGroup.delay">0</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <stringProp name="LoopController.loops">1</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </PostThreadGroup>
+      <hashTree>
+        <JSR223Sampler guiclass="TestBeanGUI" testclass="JSR223Sampler" testname="TEARDOWN_Close_Clients">
+          <stringProp name="scriptLanguage">groovy</stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="script">// Close shared clients and write run metadata
+def kp = props.get(&quot;omp.kafka.producer&quot;)
+if (kp != null) { try { kp.close() } catch (Throwable t) { log.warn(&quot;kafka close: &quot; + t) } }
+def dir = new File(props.getProperty(&quot;results_dir&quot;) ?: &quot;results&quot;)
+dir.mkdirs()
+new File(dir, &quot;run_info.json&quot;).text = &apos;{&quot;testrun&quot;:&quot;&apos; + (props.getProperty(&quot;testrun&quot;) ?: &quot;local&quot;) +
+    &apos;&quot;,&quot;env&quot;:&quot;&apos; + (props.getProperty(&quot;env&quot;) ?: &quot;local&quot;) + &apos;&quot;,&quot;users&quot;:&quot;&apos; + (props.getProperty(&quot;users&quot;) ?: &quot;&quot;) +
+    &apos;&quot;,&quot;workers&quot;:&quot;&apos; + (props.getProperty(&quot;workers&quot;) ?: &quot;1&quot;) + &apos;&quot;,&quot;finished&quot;:&apos; + System.currentTimeMillis() + &apos;}&apos;
+SampleResult.setResponseData(&quot;teardown complete&quot;, &quot;UTF-8&quot;)
+SampleResult.setSuccessful(true)</stringProp>
+        </JSR223Sampler>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

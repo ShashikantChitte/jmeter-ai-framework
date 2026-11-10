@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="FRG - Search (fragment file)" enabled="true">
+      <stringProp name="TestPlan.comments">Search flow with JSON + Boundary extractors, Duration assertion (SLA guard) and a JSR223 assertion.</stringProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.tearDown_on_shutdown">true</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+        <collectionProp name="Arguments.arguments">
+</collectionProp>
+      </elementProp>
+      <stringProp name="TestPlan.user_define_classpath" />
+    </TestPlan>
+    <hashTree>
+      <TestFragmentController guiclass="TestFragmentControllerGui" testclass="TestFragmentController" testname="FRG - Search" enabled="true" />
+      <hashTree>
+        <TransactionController guiclass="TransactionControllerGui" testclass="TransactionController" testname="TX02_Search_Query" enabled="true">
+          <boolProp name="TransactionController.parent">true</boolProp>
+          <boolProp name="TransactionController.includeTimers">false</boolProp>
+        </TransactionController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="GET /api/search" enabled="true">
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables" enabled="true">
+              <collectionProp name="Arguments.arguments">
+</collectionProp>
+            </elementProp>
+            <stringProp name="HTTPSampler.domain" />
+            <stringProp name="HTTPSampler.port" />
+            <stringProp name="HTTPSampler.protocol" />
+            <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+            <stringProp name="HTTPSampler.path">/api/search?q=${term}&amp;page=1&amp;size=20</stringProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <boolProp name="HTTPSampler.auto_redirects">false</boolProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.DO_MULTIPART_POST">false</boolProp>
+            <stringProp name="HTTPSampler.embedded_url_re" />
+            <stringProp name="HTTPSampler.connect_timeout" />
+            <stringProp name="HTTPSampler.response_timeout" />
+          </HTTPSamplerProxy>
+          <hashTree>
+            <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Assert - HTTP 2xx" enabled="true">
+              <collectionProp name="Asserion.test_strings">
+                <stringProp name="1145659620">^20[0-9]$</stringProp>
+              </collectionProp>
+              <stringProp name="Assertion.custom_message" />
+              <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+              <boolProp name="Assertion.assume_success">false</boolProp>
+              <intProp name="Assertion.test_type">1</intProp>
+            </ResponseAssertion>
+            <hashTree>
+</hashTree>
+            <DurationAssertion guiclass="DurationAssertionGui" testclass="DurationAssertion" testname="Assert - duration SLA" enabled="true">
+              <stringProp name="DurationAssertion.duration">${__P(search_max_ms,5000)}</stringProp>
+            </DurationAssertion>
+            <hashTree>
+</hashTree>
+            <JSONPathAssertion guiclass="JSONPathAssertionGui" testclass="JSONPathAssertion" testname="Assert - results exist" enabled="true">
+              <stringProp name="JSON_PATH">$.results</stringProp>
+              <stringProp name="EXPECTED_VALUE" />
+              <boolProp name="JSONVALIDATION">false</boolProp>
+              <boolProp name="EXPECT_NULL">false</boolProp>
+              <boolProp name="INVERT">false</boolProp>
+              <boolProp name="ISREGEX">true</boolProp>
+            </JSONPathAssertion>
+            <hashTree>
+</hashTree>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="Extract - random result id" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">search_product_id</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.results[*].id</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">0</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree>
+</hashTree>
+            <BoundaryExtractor guiclass="BoundaryExtractorGui" testclass="BoundaryExtractor" testname="Extract - totalHits (boundary)" enabled="true">
+              <stringProp name="BoundaryExtractor.useHeaders">false</stringProp>
+              <stringProp name="BoundaryExtractor.refname">total_hits</stringProp>
+              <stringProp name="BoundaryExtractor.lboundary">"totalHits":</stringProp>
+              <stringProp name="BoundaryExtractor.rboundary">,</stringProp>
+              <stringProp name="BoundaryExtractor.default">NOT_FOUND</stringProp>
+              <stringProp name="BoundaryExtractor.match_number">1</stringProp>
+            </BoundaryExtractor>
+            <hashTree>
+</hashTree>
+            <JSR223Assertion guiclass="TestBeanGUI" testclass="JSR223Assertion" testname="Assert - totalHits numeric (JSR223)" enabled="true">
+              <stringProp name="scriptLanguage">groovy</stringProp>
+              <stringProp name="parameters" />
+              <stringProp name="filename" />
+              <stringProp name="cacheKey">true</stringProp>
+              <stringProp name="script">def v = vars.get("total_hits")
+if (v == null || !(v ==~ /\d+/)) {
+    AssertionResult.setFailure(true)
+    AssertionResult.setFailureMessage("totalHits not numeric: " + v)
+}</stringProp>
+            </JSR223Assertion>
+            <hashTree>
+</hashTree>
+            <UniformRandomTimer guiclass="UniformRandomTimerGui" testclass="UniformRandomTimer" testname="Think Time (uniform random)" enabled="true">
+              <stringProp name="ConstantTimer.delay">${__P(think_min_ms,1000)}</stringProp>
+              <stringProp name="RandomTimer.range">${__P(think_range_ms,3000)}</stringProp>
+            </UniformRandomTimer>
+            <hashTree>
+</hashTree>
+          </hashTree>
+        </hashTree>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

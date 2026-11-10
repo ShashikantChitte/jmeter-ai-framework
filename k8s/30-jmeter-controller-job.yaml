@@ -1,0 +1,31 @@
+# Controller job. Launch with k8s/run_distributed.sh (it substitutes PROFILE / TESTRUN / counts).
+apiVersion: batch/v1
+kind: Job
+metadata: { name: jmeter-controller, namespace: jmeter }
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 3600
+  template:
+    metadata: { labels: { app: jmeter-controller } }
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: jmeter
+          image: registry.example.com/perf/omp-jmeter:1.0.0
+          env:
+            - { name: MODE, value: controller }
+            - { name: POD_IP, valueFrom: { fieldRef: { fieldPath: status.podIP } } }
+            - { name: WORKERS_DNS, value: jmeter-worker.jmeter.svc.cluster.local }
+            - { name: EXPECTED_WORKERS, value: "__WORKERS__" }
+            - { name: ENV, value: "__ENV__" }
+            - { name: PROFILE, value: "__PROFILE__" }
+            - { name: TESTRUN, value: "__TESTRUN__" }
+            - { name: HEAP, value: "-Xms2g -Xmx2g -XX:MaxMetaspaceSize=256m" }
+            - { name: RUN_AI_ANALYSIS, value: "true" }
+            - { name: ANTHROPIC_API_KEY, valueFrom: { secretKeyRef: { name: omp-secrets, key: ANTHROPIC_API_KEY, optional: true } } }
+            - { name: OAUTH_CLIENT_SECRET, valueFrom: { secretKeyRef: { name: omp-secrets, key: OAUTH_CLIENT_SECRET, optional: true } } }
+          resources:
+            requests: { cpu: "1", memory: 3Gi }
+            limits:   { cpu: "2", memory: 3Gi }
+          volumeMounts: [{ name: results, mountPath: /opt/omp/results }]
+      volumes: [{ name: results, emptyDir: {} }]
